@@ -4,7 +4,6 @@ import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import inc.huduk.tldr_inator.models.HudukRequest;
-import inc.huduk.tldr_inator.models.HudukResponse;
 import inc.huduk.tldr_inator.repository.InMemoryVectorDB;
 import inc.huduk.tldr_inator.service.llm.LLMService;
 import inc.huduk.tldr_inator.service.reader.PDFReader;
@@ -49,7 +48,7 @@ public class Processinator {
 
     public Flux<String> promptShortTermMemory(String uuid, String query) {
         return inMemoryVectorDB.search(uuid, query)
-                .map(emb-> emb.embedded().text())
+                .map(TextSegment::text)
                 .collect(Collectors.joining("\n"))
                 .map(context-> SYSTEM_MESSAGE + context + USER_QUERY_HEADING + query)
                 .map(x-> {
@@ -62,7 +61,7 @@ public class Processinator {
 
     public Flux<String> summary(String uuid) {
         return inMemoryVectorDB.fetchFullContent(uuid)
-                .concatMap(matched-> summaryOfSegment(matched.embedded()))
+                .concatMap(this::summaryOfSegment)
                 .collect(Collectors.joining("\n"))
                 // do summary of summary
                 .map(TextSegment::from)
