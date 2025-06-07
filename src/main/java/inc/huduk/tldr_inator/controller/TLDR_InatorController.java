@@ -34,18 +34,17 @@ public class TLDR_InatorController {
 
     @PostMapping(value = "/short-term-memory")
     Mono<HudukResponse> uploadPdf(@RequestPart("file") FilePart file) {
-        log.info("HERE");
-        return processinator.addToShortTermMemory(file);
+        return processinator.addToShortTermMemory(file).map(HudukResponse::new);
     }
 
-    @GetMapping(value = "/short-term-memory", produces = TEXT_EVENT_STREAM_VALUE)
-    Flux<HudukResponse> promptShortTermMemory(@RequestParam String query) {
-        return processinator.promptShortTermMemory(query).map(HudukResponse::new);
+    @GetMapping(value = "/short-term-memory/{uuid}/", produces = TEXT_EVENT_STREAM_VALUE)
+    Flux<HudukResponse> promptShortTermMemory(@PathVariable String uuid, @RequestParam String query) {
+        return processinator.promptShortTermMemory(uuid, query).map(HudukResponse::new);
     }
 
-    @GetMapping(value = "/summarize", produces = TEXT_EVENT_STREAM_VALUE)
-    Flux<HudukResponse> summary() {
-        return processinator.summary().map(HudukResponse::new);
+    @GetMapping(value = "/summarize/{uuid}", produces = TEXT_EVENT_STREAM_VALUE)
+    Flux<HudukResponse> summary(@PathVariable String uuid) {
+        return processinator.summary(uuid).map(HudukResponse::new);
     }
 }
 

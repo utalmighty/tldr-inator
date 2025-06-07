@@ -1,6 +1,7 @@
 package inc.huduk.tldr_inator.service;
 
 import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import inc.huduk.tldr_inator.models.HudukRequest;
 import inc.huduk.tldr_inator.models.HudukResponse;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,16 +38,17 @@ public class Processinator {
     /*
     * Save to short term memory
      */
-    public Mono<HudukResponse> addToShortTermMemory(FilePart filePart) {
+    public Mono<String> addToShortTermMemory(FilePart filePart) {
+        String uuid = UUID.randomUUID().toString();
         return pdfReader.fileContent(filePart)
-                .flatMapMany(content-> splitter.chunkDocument(new Document(content)))
-                .flatMap(chunk-> inMemoryVectorDB.add(chunk.text()))
-                .reduce(0, (count, item)-> count + 1)
-                .map(x-> new HudukResponse(x.toString()));
+                .flatMapMany(content-> splitter.chunkDocument(new Document(content, Metadata.metadata("uuid", uuid))))
+                .flatMap(chunk-> inMemoryVectorDB.add(chunk))
+                .map(x-> uuid)
+                .next();
     }
 
-    public Flux<String> promptShortTermMemory(String query) {
-        return inMemoryVectorDB.search(query)
+    public Flux<String> promptShortTermMemory(String uuid, String query) {
+        return inMemoryVectorDB.search(uuid, query)
                 .map(emb-> emb.embedded().text())
                 .collect(Collectors.joining("\n"))
                 .map(context-> SYSTEM_MESSAGE + context + USER_QUERY_HEADING + query)
@@ -57,8 +60,8 @@ public class Processinator {
                 .flatMapMany(llm::prompt);
     }
 
-    public Flux<String> summary() {
-        return inMemoryVectorDB.fetchFullPdfContent()
+    public Flux<String> summary(String uuid) {
+        return inMemoryVectorDB.fetchFullContent(uuid)
                 .concatMap(matched-> summaryOfSegment(matched.embedded()))
                 .collect(Collectors.joining("\n"))
                 // do summary of summary
