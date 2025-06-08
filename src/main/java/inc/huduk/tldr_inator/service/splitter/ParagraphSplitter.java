@@ -16,8 +16,6 @@ public class ParagraphSplitter implements SplitterService {
     int segmentSizeInChar = 1500;
     int overlapSize = 0;
 
-
-
     @Override
     public Flux<TextSegment> chunkDocument(Document doc) {
         DocumentByParagraphSplitter splitter = new DocumentByParagraphSplitter(segmentSizeInChar, overlapSize);

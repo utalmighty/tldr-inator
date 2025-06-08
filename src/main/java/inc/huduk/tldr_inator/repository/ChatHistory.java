@@ -20,7 +20,7 @@ public class ChatHistory {
         q.add(response);
     }
 
-    public List<String> history(String id) {
-        return history.getOrDefault(id, new LinkedList<>()).stream().toList();
+    public String history(String id) {
+        return history.getOrDefault(id, new LinkedList<>()).stream().reduce("", (acc, item)-> acc + '\n' +  item);
     }
 }
