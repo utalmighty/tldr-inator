@@ -19,11 +19,6 @@ public class RecursiveSplitter implements SplitterService {
     public Flux<TextSegment> chunkDocument(Document doc) {
         DocumentSplitter splitter = DocumentSplitters.recursive(segmentSizeInChar, overlapSize);
         var textSegments = splitter.split(doc);
-        return Flux.fromIterable(textSegments)
-                .index()
-                .map(tuple -> {
-                    tuple.getT2().metadata().put("index", tuple.getT1());
-                    return tuple.getT2();
-                });
+        return Flux.fromIterable(textSegments);
     }
 }

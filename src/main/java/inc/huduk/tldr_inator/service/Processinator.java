@@ -4,12 +4,15 @@ import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import inc.huduk.tldr_inator.models.HudukRequest;
+import inc.huduk.tldr_inator.repository.InMemoryContentHolder;
 import inc.huduk.tldr_inator.repository.InMemoryVectorDB;
 import inc.huduk.tldr_inator.service.llm.LLMService;
 import inc.huduk.tldr_inator.service.reader.PDFReader;
 import inc.huduk.tldr_inator.service.splitter.SplitterService;
-import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -20,19 +23,17 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Processinator {
 
-    PDFReader pdfReader;
-    SplitterService splitter;
-    InMemoryVectorDB inMemoryVectorDB;
-    LLMService llm;
+    @NonNull PDFReader pdfReader;
+    @NonNull SplitterService splitter;
+    @NonNull InMemoryVectorDB inMemoryVectorDB;
+    @NonNull LLMService llm;
+    @NonNull InMemoryContentHolder db;
 
-    static final String SYSTEM_MESSAGE = "You are an expert text summarizer. You'll receive a prompt that includes retrieved" +
-            " content from the vectorDB based on the user's question, and the source. Your task is to respond to the user's " +
-            "new question using the information from the vectorDB without relying on your own knowledge. \n Context:\n";
-
-    static final String USER_QUERY_HEADING = "\n# User asked Query:\n";
+    @Value("${llm.system.message}")
+    private String systemMessage;
 
     /*
     * Save to short term memory
@@ -40,7 +41,9 @@ public class Processinator {
     public Mono<String> addToShortTermMemory(FilePart filePart) {
         String uuid = UUID.randomUUID().toString();
         return pdfReader.fileContent(filePart)
-                .flatMapMany(content-> splitter.chunkDocument(new Document(content, Metadata.metadata("uuid", uuid))))
+                .doOnNext(content-> db.add(uuid, content))
+                .map(content-> new Document(content, Metadata.metadata("uuid", uuid)))
+                .flatMapMany(doc-> splitter.chunkDocument(doc))
                 .flatMap(chunk-> inMemoryVectorDB.add(chunk))
                 .map(x-> uuid)
                 .next();
@@ -50,20 +53,13 @@ public class Processinator {
         return inMemoryVectorDB.search(uuid, query)
                 .map(TextSegment::text)
                 .collect(Collectors.joining("\n"))
-                .map(context-> SYSTEM_MESSAGE + context + USER_QUERY_HEADING + query)
-                .map(x-> {
-                    log.info(x);
-                    return x;
-                })
+                .map(context-> String.format(systemMessage, context, query))
                 .map(HudukRequest::new)
                 .flatMapMany(llm::prompt);
     }
 
     public Flux<String> summary(String uuid) {
-        return inMemoryVectorDB.fetchFullContent(uuid)
-                .concatMap(this::summaryOfSegment)
-                .collect(Collectors.joining("\n"))
-                // do summary of summary
+        return Mono.just(db.get(uuid))
                 .map(TextSegment::from)
                 .flatMapMany(this::summaryOfSegment);
     }

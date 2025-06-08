@@ -7,21 +7,24 @@ import dev.langchain4j.store.embedding.filter.Filter;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import inc.huduk.tldr_inator.service.embedding.EmbeddingService;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
-
 import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 
 @Repository
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class InMemoryVectorDB {
 
-    InMemoryEmbeddingStore<TextSegment> inMemoryEmbeddingStore;
-    EmbeddingService embeddingService;
-    Map<String, List<TextSegment>> shortTermMemory = new HashMap<>();
+    @NonNull InMemoryEmbeddingStore<TextSegment> inMemoryEmbeddingStore;
+    @NonNull EmbeddingService embeddingService;
+
+    @Value("${context.results.size}")
+    private int results;
 
     public Flux<TextSegment> search(String uuid, String query) {
         Filter filterByUUID = metadataKey("uuid").isEqualTo(uuid);
@@ -31,7 +34,7 @@ public class InMemoryVectorDB {
                         EmbeddingSearchRequest.builder()
                                 .filter(filterByUUID)
                                 .queryEmbedding(embedding)
-                                .maxResults(2)
+                                .maxResults(results)
                                 .build())
                 .flatMapIterable(request -> inMemoryEmbeddingStore
                         .search(request)
@@ -40,17 +43,6 @@ public class InMemoryVectorDB {
     }
 
     public Mono<String> add(TextSegment segment) {
-        String uuid = segment.metadata("uuid");
-        shortTermMemory.computeIfAbsent(uuid, _ -> new ArrayList<>()).add(segment);
         return embeddingService.embed(segment).map(embedding -> inMemoryEmbeddingStore.add(embedding, segment));
-    }
-
-    public Flux<TextSegment> fetchFullContent(String uuid) {
-        var list = shortTermMemory.get(uuid)
-                .stream()
-                .sorted(Comparator.comparingInt(a -> Integer.parseInt(a.metadata().get("index"))))
-                .toList();
-        shortTermMemory.remove(uuid); // clear
-        return Flux.fromIterable(list);
     }
 }

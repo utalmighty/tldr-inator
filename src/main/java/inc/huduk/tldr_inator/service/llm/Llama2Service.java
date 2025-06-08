@@ -6,6 +6,7 @@ import inc.huduk.tldr_inator.models.ModelResponse;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Flux;
 @Service
 @AllArgsConstructor
 @Slf4j
+@ConfigurationProperties
 public class Llama2Service implements LLMService {
 
     WebClient ollamaWebClient;

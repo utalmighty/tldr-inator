@@ -1,0 +1,26 @@
+package inc.huduk.tldr_inator.repository;
+
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
+
+import java.util.*;
+
+@Repository
+public class ChatHistory {
+
+    @Value("${chat.history.size}")
+    private int historySize;
+
+    Map<String, Queue<String>> history = new HashMap<>();
+
+    public void add(String id, String response) {
+        var q = history.computeIfAbsent(id, _ -> new LinkedList<>());
+        if (q.size() == historySize) q.poll();
+        q.add(response);
+    }
+
+    public List<String> history(String id) {
+        return history.getOrDefault(id, new LinkedList<>()).stream().toList();
+    }
+}
