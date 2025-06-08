@@ -34,24 +34,24 @@ public class TLDR_InatorController {
 
     @GetMapping(value = "session/{sessionId}/chat", produces = "text/event-stream")
     Flux<HudukResponse> prompt(@PathVariable String sessionId, @RequestParam String query) {
-        return interceptor.chat(sessionId, query).map(HudukResponse::new);
+        return interceptor.chat(sessionId, query);
     }
 
     @PostMapping(value = "session/{sessionId}/short-term-memory")
     Mono<HudukResponse> uploadPdf(@PathVariable String sessionId, @RequestPart("file") FilePart file) {
-        return interceptor.addToShortTermMemory(sessionId, file).map(HudukResponse::new);
+        return interceptor.addToShortTermMemory(sessionId, file);
     }
 
     @GetMapping(value = "session/{sessionId}/sessionshort-term-memory/{uuid}", produces = TEXT_EVENT_STREAM_VALUE)
     Flux<HudukResponse> promptShortTermMemory(@PathVariable String sessionId,
                                               @PathVariable String uuid,
                                               @RequestParam String query) {
-        return interceptor.promptShortTermMemory(sessionId, uuid, query).map(HudukResponse::new);
+        return interceptor.promptShortTermMemory(sessionId, uuid, query);
     }
 
     @GetMapping(value = "session/{sessionId}/summarize/{uuid}", produces = TEXT_EVENT_STREAM_VALUE)
     Flux<HudukResponse> summary(@PathVariable String sessionId, @PathVariable String uuid) {
-        return interceptor.summary(sessionId, uuid).map(HudukResponse::new);
+        return interceptor.summary(sessionId, uuid);
     }
 }
 
