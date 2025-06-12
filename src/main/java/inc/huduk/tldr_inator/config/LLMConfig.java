@@ -9,11 +9,26 @@ import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import inc.huduk.tldr_inator.service.llm.Assistant;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class LLMConfig {
+
+    @Value("${ollama.url}")
+    String ollamaUrl;
+    @Value("${ollama.model.name}")
+    String ollamaModel;
+
+    @Value("${azure.openai.api.endpoint}")
+    String azureEndpoint;
+    @Value("${azure.openai.api.key}")
+    String azureKey;
+    @Value("${azure.openai.api.version}")
+    String azureVersion;
+
 
     @Bean
     EmbeddingModel embeddingModel() {
@@ -29,17 +44,17 @@ public class LLMConfig {
     @Bean
     StreamingChatModel azure() {
         return AzureOpenAiStreamingChatModel.builder()
-                .apiKey("key")
-                .endpoint("endpoint")
-                .serviceVersion("version")
+                .apiKey(azureKey)
+                .endpoint(azureEndpoint)
+                .serviceVersion(azureVersion)
                 .build();
     }
 
     @Bean
     StreamingChatModel ollama() {
         return OllamaStreamingChatModel.builder()
-                .baseUrl("http://localhost:11434")
-                .modelName("llama2")
+                .baseUrl(ollamaUrl)
+                .modelName(ollamaModel)
                 .build();
     }
 
