@@ -1,11 +1,14 @@
 package inc.huduk.tldr_inator.config;
 
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.embedding.AllMiniLmL6V2QuantizedEmbeddingModel;
+import dev.langchain4j.model.azure.AzureOpenAiStreamingChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.ollama.OllamaChatModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
+import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
+import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+import inc.huduk.tldr_inator.service.llm.Assistant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,11 +25,26 @@ public class LLMConfig {
         return new InMemoryEmbeddingStore<>();
     }
 
+
     @Bean
-    ChatLanguageModel chatLanguageModel() {
-        return OllamaChatModel.builder()
-                .modelName("llama2")
-                .baseUrl("http://localhost:11434/")
+    StreamingChatModel azure() {
+        return AzureOpenAiStreamingChatModel.builder()
+                .apiKey("key")
+                .endpoint("endpoint")
+                .serviceVersion("version")
                 .build();
+    }
+
+    @Bean
+    StreamingChatModel ollama() {
+        return OllamaStreamingChatModel.builder()
+                .baseUrl("http://localhost:11434")
+                .modelName("llama2")
+                .build();
+    }
+
+    @Bean
+    Assistant assistant() {
+        return AiServices.create(Assistant.class, azure());
     }
 }

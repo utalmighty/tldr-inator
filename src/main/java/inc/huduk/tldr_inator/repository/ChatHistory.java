@@ -15,7 +15,7 @@ public class ChatHistory {
     Map<String, Queue<String>> history = new HashMap<>();
 
     public void add(String id, String response) {
-        var q = history.computeIfAbsent(id, _ -> new LinkedList<>());
+        var q = history.computeIfAbsent(id, x -> new LinkedList<>());
         if (q.size() == historySize) q.poll();
         q.add(response);
     }

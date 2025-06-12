@@ -9,7 +9,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(23)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -25,11 +25,18 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	implementation 'dev.langchain4j:langchain4j:0.30.0'
-	implementation 'dev.langchain4j:langchain4j-ollama:0.30.0'
-	implementation 'dev.langchain4j:langchain4j-embeddings:0.30.0'
-	implementation 'dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2-q:0.30.0'
+	implementation 'dev.langchain4j:langchain4j-spring-boot-starter:1.0.1-beta6'
+	implementation 'dev.langchain4j:langchain4j-reactor:1.0.1-beta6'
 
+	// models
+	implementation 'dev.langchain4j:langchain4j-azure-open-ai:1.0.1-beta6'
+	implementation 'dev.langchain4j:langchain4j-ollama-spring-boot-starter:1.0.1-beta6'
+
+	// Embedding
+	implementation 'dev.langchain4j:langchain4j-embeddings:1.0.1-beta6'
+	implementation 'dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2-q:1.0.1-beta6'
+
+	// PDF
 	implementation 'org.apache.pdfbox:pdfbox:2.0.1'
 }
 

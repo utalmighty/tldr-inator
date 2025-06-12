@@ -2,6 +2,7 @@ package inc.huduk.tldr_inator.controller;
 
 import inc.huduk.tldr_inator.models.HudukResponse;
 import inc.huduk.tldr_inator.service.Interceptor;
+import inc.huduk.tldr_inator.service.llm.Assistant;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.codec.multipart.FilePart;
@@ -21,20 +22,21 @@ import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
 public class TLDR_InatorController {
 
     Interceptor interceptor;
+    Assistant assistant;
 
     @GetMapping
     Mono<HudukResponse> status() {
         return Mono.just(new HudukResponse("tl;dr-inator is running"));
     }
 
-    @GetMapping("session")
+    @GetMapping("session/create")
     Mono<HudukResponse> session() {
         return Mono.just(new HudukResponse(UUID.randomUUID().toString()));
     }
 
-    @GetMapping(value = "session/{sessionId}/chat", produces = "text/event-stream")
-    Flux<HudukResponse> prompt(@PathVariable String sessionId, @RequestParam String query) {
-        return interceptor.chat(sessionId, query);
+    @GetMapping(value = "session/{sessionId}/chat", produces = TEXT_EVENT_STREAM_VALUE)
+    Flux<HudukResponse> chat(@PathVariable String sessionId, @RequestParam String query) {
+        return interceptor.chat(sessionId, query).map(HudukResponse::new);
     }
 
     @PostMapping(value = "session/{sessionId}/short-term-memory")
@@ -42,16 +44,16 @@ public class TLDR_InatorController {
         return interceptor.addToShortTermMemory(sessionId, file);
     }
 
-    @GetMapping(value = "session/{sessionId}/sessionshort-term-memory/{uuid}", produces = TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "session/{sessionId}/short-term-memory/{uuid}", produces = TEXT_EVENT_STREAM_VALUE)
     Flux<HudukResponse> promptShortTermMemory(@PathVariable String sessionId,
                                               @PathVariable String uuid,
                                               @RequestParam String query) {
-        return interceptor.promptShortTermMemory(sessionId, uuid, query);
+        return interceptor.promptShortTermMemory(sessionId, uuid, query).map(HudukResponse::new);
     }
 
     @GetMapping(value = "session/{sessionId}/summarize/{uuid}", produces = TEXT_EVENT_STREAM_VALUE)
     Flux<HudukResponse> summary(@PathVariable String sessionId, @PathVariable String uuid) {
-        return interceptor.summary(sessionId, uuid);
+        return interceptor.summary(sessionId, uuid).map(HudukResponse::new);
     }
 }
 

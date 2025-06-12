@@ -6,7 +6,6 @@ import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.filter.Filter;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import inc.huduk.tldr_inator.service.embedding.EmbeddingService;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
