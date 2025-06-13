@@ -19,7 +19,7 @@ public class LLMConfig {
 
     @Value("${ollama.url}")
     String ollamaUrl;
-    @Value("${ollama.model.name}")
+    @Value("${ollama.model}")
     String ollamaModel;
 
     @Value("${azure.openai.api.endpoint}")
