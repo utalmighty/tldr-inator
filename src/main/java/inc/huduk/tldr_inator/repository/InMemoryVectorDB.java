@@ -26,7 +26,7 @@ public class InMemoryVectorDB {
     private int results;
 
     public Flux<TextSegment> search(String uuid, String query) {
-        Filter filterByUUID = metadataKey("uuid").isEqualTo(uuid);
+        Filter filterByUUID = filterById(uuid);
 
         return embeddingService.embed(query)
                 .map(embedding ->
@@ -43,5 +43,13 @@ public class InMemoryVectorDB {
 
     public Mono<String> add(TextSegment segment) {
         return embeddingService.embed(segment).map(embedding -> inMemoryEmbeddingStore.add(embedding, segment));
+    }
+
+    public void clear(String key) {
+        inMemoryEmbeddingStore.removeAll(filterById(key));
+    }
+
+    private Filter filterById(String key) {
+        return  metadataKey("uuid").isEqualTo(key);
     }
 }

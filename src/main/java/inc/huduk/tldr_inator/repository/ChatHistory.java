@@ -23,4 +23,8 @@ public class ChatHistory {
     public String history(String id) {
         return history.getOrDefault(id, new LinkedList<>()).stream().reduce("", (acc, item)-> acc + '\n' +  item);
     }
+
+    public void clear(String id) {
+        history.remove(id);
+    }
 }

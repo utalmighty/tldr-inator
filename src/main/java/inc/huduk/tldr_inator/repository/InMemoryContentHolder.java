@@ -10,11 +10,19 @@ public class InMemoryContentHolder {
 
     Map<String, String> map = new ConcurrentHashMap<>();
 
+    public boolean contains(String key) {
+        return map.containsKey(key);
+    }
+
     public void add(String key, String content) {
         map.put(key, content);
     }
 
     public String get(String key) {
         return map.get(key);
+    }
+
+    public void clear(String key) {
+        map.remove(key);
     }
 }

@@ -68,7 +68,15 @@ public class Processinator {
                 .flatMapMany(assistant::chat);
     }
 
+    public Flux<String> clear(String sessionId, String documentId) {
+        history.clear(sessionId);
+        db.clear(documentId);
+        inMemoryVectorDB.clear(documentId);
+        return Flux.just("Cleared");
+    }
+
     public Flux<String> summary(String uuid) {
+        if (!db.contains(uuid)) return Flux.just("Document not found");
         return Mono.just(db.get(uuid))
                 .map(TextSegment::from)
                 .flatMapMany(this::summaryOfSegment);

@@ -55,5 +55,10 @@ public class TLDR_InatorController {
     Flux<HudukResponse> summary(@PathVariable String sessionId, @PathVariable String uuid) {
         return interceptor.summary(sessionId, uuid).map(HudukResponse::new);
     }
+
+    @GetMapping(value = "session/{sessionId}/command/{command}", produces = TEXT_EVENT_STREAM_VALUE)
+    Flux<HudukResponse> command(@PathVariable String sessionId, @PathVariable String command, @RequestParam String documentId) {
+        return interceptor.command(sessionId, documentId, command).map(HudukResponse::new);
+    }
 }
 

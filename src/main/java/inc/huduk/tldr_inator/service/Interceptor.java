@@ -18,9 +18,9 @@ public class Interceptor {
     public Flux<String> chat(String sessionId, String query) {
         StringBuffer buffer = new StringBuffer();
         return processinator.chat(sessionId, query).map(resp-> {
-            buffer.append(resp);
-            return resp;
-        })
+                    buffer.append(resp);
+                    return resp;
+                })
         .doOnComplete(()-> history.add(sessionId, buffer.toString()));
     }
 
@@ -44,6 +44,15 @@ public class Interceptor {
 
     public Mono<HudukResponse> addToShortTermMemory(String sesssionId, FilePart filePart) {
         return processinator.addToShortTermMemory(filePart).map(HudukResponse::new);
+    }
+
+    public Flux<String> command(String sessionId, String documentId, String command) {
+        command = command.toLowerCase().strip();
+        if (command.equals("summary"))
+            return summary(sessionId, documentId);
+        else if (command.equals("clear"))
+            return processinator.clear(sessionId, documentId);
+        return Flux.just("Invalid command");
     }
 
 }
